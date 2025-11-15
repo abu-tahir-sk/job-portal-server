@@ -35,8 +35,20 @@ async function run() {
 
     // jobs
     app.get("/jobs", async (req, res) => {
-      const cursor = jobsCollection.find();
+      const email = req.query.email;
+      let query = {};
+      if (email) {
+        query = { hr_email: email };
+      }
+
+      const cursor = jobsCollection.find(query);
       const result = await cursor.toArray();
+      res.send(result);
+    });
+    // create jobs
+    app.post("/jobs", async (req, res) => {
+      const newJob = req.body;
+      const result = await jobsCollection.insertOne(newJob);
       res.send(result);
     });
 
@@ -71,10 +83,30 @@ async function run() {
       res.send(result);
     });
 
-    // post
+    //   post apply job
     app.post("/job-applications", async (req, res) => {
       const application = req.body;
       const result = await jobApplicationCollection.insertOne(application);
+
+      const id = application.job_id;
+      const query = {_id: new ObjectId(id)}
+      const job = await jobsCollection.findOne(query)
+      let newCount = 0;
+      if (job.applicationCount) {
+        newCount = job.application + 1;
+      } else {
+        newCount = 1;
+      }
+
+      // now update the job info
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          applicationCount: newCount,
+        },
+      };
+      const updateResult = await jobsCollection.updateOne(filter,updateDoc);
+
       res.send(result);
     });
   } finally {

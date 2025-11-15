@@ -61,6 +61,14 @@ async function run() {
       res.send(result);
     });
 
+    // job applications-> job_id
+    app.get("/job-applications/jobs/:job_id", async (req, res) => {
+      const jobId = req.params.job_id;
+      const query = { job_id: jobId };
+      const result = await jobApplicationCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // job application apis
     app.get("/job-application", async (req, res) => {
       const email = req.query.email;
@@ -89,8 +97,8 @@ async function run() {
       const result = await jobApplicationCollection.insertOne(application);
 
       const id = application.job_id;
-      const query = {_id: new ObjectId(id)}
-      const job = await jobsCollection.findOne(query)
+      const query = { _id: new ObjectId(id) };
+      const job = await jobsCollection.findOne(query);
       let newCount = 0;
       if (job.applicationCount) {
         newCount = job.application + 1;
@@ -105,7 +113,7 @@ async function run() {
           applicationCount: newCount,
         },
       };
-      const updateResult = await jobsCollection.updateOne(filter,updateDoc);
+      const updateResult = await jobsCollection.updateOne(filter, updateDoc);
 
       res.send(result);
     });

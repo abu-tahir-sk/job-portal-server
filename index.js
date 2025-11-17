@@ -1,12 +1,15 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.qha6rup.mongodb.net/?appName=Cluster0`;
 
@@ -32,6 +35,18 @@ async function run() {
     const jobApplicationCollection = client
       .db("jobsPortal")
       .collection("job_applications");
+
+    // Auth related APIs
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: "1h" });
+      res
+      .cookie('token', token,{
+        httpOnly: true,
+        secure: false,
+      })
+      .send({success: true});
+    });
 
     // jobs
     app.get("/jobs", async (req, res) => {
@@ -129,7 +144,7 @@ async function run() {
       };
       const result = await jobApplicationCollection.updateOne(
         filter,
-        updateDoc  
+        updateDoc
       );
       res.send(result);
     });

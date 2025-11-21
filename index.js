@@ -7,9 +7,12 @@ const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
+// Abu12@#22
+// abutahir@gmail.com
+
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["https://jobs-portal12.netlify.app", "http://localhost:5174"],
     credentials: true,
   })
 );
@@ -45,10 +48,10 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected");
+    // await client.db("admin").command({ ping: 1 });
+    // console.log("Pinged your deployment. You successfully connected");
 
     // jobs related apis
     //jobs collection
@@ -62,12 +65,12 @@ async function run() {
     app.post("/jwt", async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.JWT_SECRET, {
-        expiresIn: "5h",
+        expiresIn: "10h",
       });
       res
         .cookie("token", token, {
           httpOnly: true,
-          secure: false,
+          secure: process.env.NODE_ENV === "production",
         })
         .send({ success: true });
     });
@@ -75,7 +78,7 @@ async function run() {
       res
         .clearCookie("token", {
           httpOnly: true,
-          secure: false,
+          secure: process.env.NODE_ENV === "production",
         })
         .send({ success: true });
     });
